@@ -667,6 +667,7 @@
       </div>
 
       <button class="primary" onclick="irAFormulario()">Comenzar prueba gratis</button>
+      <button class="secondary" onclick="mostrarPantalla('screen-desbloqueo')">Ya pagué, tengo mi código</button>
 
       <div style="height:32px"></div>
 
@@ -883,6 +884,20 @@
       <button class="secondary" onclick="mostrarPantalla('screen-landing')">Volver al inicio</button>
     </section>
 
+    <!-- PANTALLA: DESBLOQUEO -->
+    <section class="screen" id="screen-desbloqueo">
+      <h2>Ingresa tu código</h2>
+      <p class="lead">Si ya confirmamos tu pago, aquí desbloqueas tu diagnóstico completo.</p>
+
+      <label for="input-codigo">Tu código</label>
+      <input type="text" id="input-codigo" placeholder="Ej. VIVA-8X3K2" style="text-transform:uppercase;">
+
+      <p class="error-msg" id="error-desbloqueo">No encontramos ese código, o el pago aún no se ha confirmado. Si ya pagaste, danos un momento — a veces toma unas horas.</p>
+
+      <button class="primary" id="btn-verificar" onclick="verificarCodigo()">Verificar</button>
+      <button class="secondary" onclick="mostrarPantalla('screen-landing')">Volver al inicio</button>
+    </section>
+
   </main>
 </div>
 
@@ -1084,6 +1099,65 @@ function guardarResultado(nivel, correctas){
       })
     }).catch(err => console.log("No se pudo guardar en Sheets todavía:", err));
   }
+}
+
+// ---------------------------------------------------------------
+// VERIFICACIÓN DE PAGO — lee la hoja "Verificacion" publicada como CSV
+// ---------------------------------------------------------------
+const CSV_VERIFICACION_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQsDrrpocp85tZeGr-FAjJ1qmbQX8gkR6RaO1hoblpY5Su4DLg34k3iizrGT14c2kBtmli4KORkbWy0/pub?gid=676300624&single=true&output=csv";
+
+function parsearCSV(texto){
+  const lineas = texto.trim().split("\n");
+  const filas = lineas.slice(1); // saltar encabezado
+  const resultado = {};
+  filas.forEach(linea => {
+    const partes = linea.split(",");
+    const codigo = (partes[0] || "").trim().toUpperCase();
+    const pagado = (partes[1] || "").trim().toUpperCase();
+    if(codigo) resultado[codigo] = pagado;
+  });
+  return resultado;
+}
+
+function verificarCodigo(){
+  const input = document.getElementById("input-codigo");
+  const codigo = input.value.trim().toUpperCase();
+  const error = document.getElementById("error-desbloqueo");
+  const btn = document.getElementById("btn-verificar");
+
+  error.style.display = "none";
+  if(!codigo){
+    error.textContent = "Escribe tu código primero.";
+    error.style.display = "block";
+    return;
+  }
+
+  btn.textContent = "Verificando...";
+  btn.disabled = true;
+
+  fetch(CSV_VERIFICACION_URL + "&_=" + Date.now()) // evita caché vieja
+    .then(res => res.text())
+    .then(texto => {
+      const datos = parsearCSV(texto);
+      btn.textContent = "Verificar";
+      btn.disabled = false;
+
+      if(datos[codigo] === "SI"){
+        // Acceso concedido — por ahora avisamos; el diagnóstico completo se agrega después
+        alert("¡Pago confirmado! Tu diagnóstico completo estará disponible muy pronto. Te avisaremos por WhatsApp.");
+      } else {
+        error.textContent = datos[codigo]
+          ? "Encontramos tu código, pero el pago todavía no está confirmado."
+          : "No encontramos ese código. Revisa que esté bien escrito.";
+        error.style.display = "block";
+      }
+    })
+    .catch(() => {
+      btn.textContent = "Verificar";
+      btn.disabled = false;
+      error.textContent = "No pudimos conectar en este momento. Intenta de nuevo en un momento.";
+      error.style.display = "block";
+    });
 }
 
 function irACertificacion(){

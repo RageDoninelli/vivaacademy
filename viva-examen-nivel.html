@@ -543,6 +543,97 @@
   .level-btn:active{transform:scale(0.97);}
   .level-btn .lt{display:block; font-size:10.5px; font-weight:400; color:#9A9186; margin-top:2px;}
   .course-card button.primary{margin-top:4px;}
+
+  /* --- Pago --- */
+  .bank-card{
+    background:var(--slate);
+    color:#fff;
+    border-radius:16px;
+    padding:22px;
+    margin-bottom:20px;
+  }
+  .bank-card .btitle{
+    font-size:12px;
+    color:#B9C3C7;
+    margin-bottom:16px;
+  }
+  .bank-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px 0;
+    border-bottom:1px solid rgba(255,255,255,0.12);
+  }
+  .bank-row:last-child{border-bottom:none;}
+  .bank-row .blabel{
+    font-size:12px;
+    color:#B9C3C7;
+  }
+  .bank-row .bvalue{
+    font-size:14px;
+    font-weight:700;
+    color:#fff;
+    text-align:right;
+  }
+  .copy-btn{
+    background:rgba(255,255,255,0.12);
+    border:none;
+    color:#fff;
+    font-size:11px;
+    padding:4px 10px;
+    border-radius:8px;
+    margin-left:8px;
+    cursor:pointer;
+  }
+  .amount-highlight{
+    text-align:center;
+    padding:16px;
+    background:rgba(245,166,35,0.15);
+    border-radius:12px;
+    margin-bottom:20px;
+  }
+  .amount-highlight .anum{
+    font-family:'Syne', sans-serif;
+    font-weight:800;
+    font-size:32px;
+    color:var(--amber);
+  }
+  .amount-highlight .alabel{
+    font-size:12px;
+    color:#7A7268;
+    margin-top:2px;
+  }
+  .steps-list{
+    margin-bottom:24px;
+  }
+  .step-item{
+    display:flex;
+    gap:12px;
+    margin-bottom:16px;
+  }
+  .step-num{
+    flex-shrink:0;
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    background:var(--teal);
+    color:#fff;
+    font-size:13px;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .step-text{
+    font-size:14px;
+    color:var(--slate);
+    padding-top:3px;
+  }
+  .waiting-icon{
+    text-align:center;
+    font-size:48px;
+    margin-bottom:16px;
+  }
 </style>
 </head>
 <body>
@@ -726,6 +817,70 @@
         Tu código de resultado: <strong id="codigo-estudiante">—</strong><br>
         Guárdalo, lo vas a necesitar más adelante.
       </div>
+    </section>
+
+    <!-- PANTALLA: PAGO -->
+    <section class="screen" id="screen-pago">
+      <h2>Certificación completa</h2>
+      <p class="lead">Un solo pago desbloquea el diagnóstico completo, la entrevista oral y tu certificado.</p>
+
+      <div class="amount-highlight">
+        <div class="anum">Q50</div>
+        <div class="alabel">pago único</div>
+      </div>
+
+      <div class="bank-card">
+        <div class="btitle">Datos para depósito o transferencia</div>
+        <div class="bank-row">
+          <span class="blabel">Banco</span>
+          <span class="bvalue">Nexa</span>
+        </div>
+        <div class="bank-row">
+          <span class="blabel">Tipo de cuenta</span>
+          <span class="bvalue">Monetaria</span>
+        </div>
+        <div class="bank-row">
+          <span class="blabel">Número de cuenta</span>
+          <span class="bvalue">10-10040962-9 <button class="copy-btn" onclick="copiarCuenta(this)">Copiar</button></span>
+        </div>
+        <div class="bank-row">
+          <span class="blabel">Titular</span>
+          <span class="bvalue">Julio Solares Doninelli</span>
+        </div>
+      </div>
+
+      <div class="steps-list">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-text">Haz tu depósito o transferencia por Q50.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-text">Toma una foto o captura de tu comprobante.</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-text">Mándalo por WhatsApp junto con tu código — te confirmamos y desbloqueamos tu diagnóstico completo.</div>
+        </div>
+      </div>
+
+      <button class="primary" onclick="enviarComprobante()">Ya pagué, enviar comprobante</button>
+      <button class="secondary" onclick="mostrarPantalla('screen-resultado')">Volver</button>
+    </section>
+
+    <!-- PANTALLA: ESPERANDO CONFIRMACIÓN -->
+    <section class="screen" id="screen-esperando">
+      <div class="waiting-icon">⏳</div>
+      <h2 style="text-align:center;">¡Ya casi!</h2>
+      <p class="lead" style="text-align:center;">Recibimos tu aviso. En cuanto confirmemos tu pago te vamos a escribir por WhatsApp para darte acceso al diagnóstico completo, la entrevista oral y tu certificado.</p>
+
+      <div class="code-box" style="margin-top:20px;">
+        Tu código: <strong id="codigo-estudiante-2">—</strong><br>
+        Guárdalo — te lo vamos a pedir de nuevo.
+      </div>
+
+      <div style="height:20px"></div>
+      <button class="secondary" onclick="mostrarPantalla('screen-landing')">Volver al inicio</button>
     </section>
 
   </main>
@@ -932,12 +1087,27 @@ function guardarResultado(nivel, correctas){
 }
 
 function irACertificacion(){
+  mostrarPantalla("screen-pago");
+}
+
+function copiarCuenta(btn){
+  navigator.clipboard.writeText("10-10040962-9").then(() => {
+    const original = btn.textContent;
+    btn.textContent = "¡Copiado!";
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  });
+}
+
+function enviarComprobante(){
   const mensaje = encodeURIComponent(
-    "Hola! Hice la prueba de nivel de VIVA Academy y saqué nivel " +
+    "Hola! Ya hice mi depósito de Q50 para la certificación de VIVA Academy. Mi código es " +
+    codigoEstudiante + " y mi nivel gratuito fue " +
     document.getElementById("result-level").textContent +
-    ". Mi código es " + codigoEstudiante + ". Quiero información sobre la certificación completa."
+    ". Adjunto mi comprobante."
   );
   window.open("https://wa.me/50253745918?text=" + mensaje, "_blank");
+  document.getElementById("codigo-estudiante-2").textContent = codigoEstudiante;
+  mostrarPantalla("screen-esperando");
 }
 </script>
 </body>
